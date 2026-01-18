@@ -168,11 +168,27 @@ recent_color: '#fadbd8'
 - Check browser console for JavaScript errors
 - Ensure the card has loaded completely (wait for all sections to render)
 
-### Custom products not saving
+### Custom products not saving to shared file
 
-- Check browser localStorage permissions
-- Try clearing browser cache and re-adding custom products
-- Ensure you're using a modern browser (Chrome, Firefox, Edge, Safari)
+1. **Check Browser Console** (F12 → Console tab):
+   - Look for messages starting with ✅ (success) or ❌ (error)
+   - If you see "Python script service not available" or "Shell command service not available", the helper is not configured
+   - Check for specific error messages that will guide you to the solution
+
+2. **Verify Setup**:
+   - **Python Script Method**: Ensure `write_shopping_list.py` is in `/config/python_scripts/` and `python_script:` is in `configuration.yaml`
+   - **Shell Command Method**: Ensure `shell_command` is configured in `configuration.yaml` (see `configuration_example.yaml`)
+   - Restart Home Assistant after making configuration changes
+
+3. **Check File Location**:
+   - Navigate to `/config/www/community/shopping-list-manager/custom-products.json`
+   - If the file doesn't exist, check Home Assistant logs for errors
+   - Ensure Home Assistant has write permissions to `/config/www/`
+
+4. **Fallback Behavior**:
+   - If file storage isn't configured, products will save to browser localStorage
+   - This means products are browser-specific and won't be shared
+   - Check console for warnings about localStorage-only storage
 
 ## 💾 Shared Custom Products Storage
 
@@ -182,7 +198,9 @@ Custom products you add manually are stored in a shared file so they can be acce
 
 ### Setup for Shared File Storage
 
-To enable shared storage (so custom products are available to all users), you need to set up a Python script helper:
+To enable shared storage (so custom products are available to all users), choose **one** of the following methods:
+
+#### Method 1: Python Script (Recommended)
 
 1. **Enable Python Scripts** (if not already enabled):
    Add to your `configuration.yaml`:
@@ -197,10 +215,31 @@ To enable shared storage (so custom products are available to all users), you ne
 
 3. **Restart Home Assistant**
 
-4. **Verify Directory Structure**:
-   The directory `/config/www/community/shopping-list-manager/` will be created automatically when you first add a custom product.
+#### Method 2: Shell Command (Alternative)
 
-**Note:** If the Python script is not configured, custom products will be stored in browser localStorage as a fallback (browser-specific, not shared across users).
+If you prefer not to use Python scripts, add this to your `configuration.yaml`:
+
+```yaml
+shell_command:
+  write_shopping_list_file: 'mkdir -p /config/www/community/shopping-list-manager && echo "$1" > /config/www/community/shopping-list-manager/custom-products.json'
+```
+
+**Note:** This method requires proper escaping. The Python script method is safer and recommended.
+
+### Verifying Setup
+
+1. **Check Browser Console** (F12):
+   - When adding a custom product, look for: `"Custom products saved to shared file successfully"`
+   - If you see warnings, the file storage is not configured
+
+2. **Check File Location**:
+   - Navigate to `/config/www/community/shopping-list-manager/custom-products.json` in your Home Assistant file system
+   - The file should be created automatically when you add your first custom product
+
+3. **Fallback Behavior**:
+   - If neither method is configured, custom products will be stored in browser localStorage as a fallback
+   - This means products are browser-specific and won't be shared across users
+   - Check the browser console for warnings if the file isn't being created
 
 ## 📝 Prerequisites
 
