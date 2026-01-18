@@ -1,36 +1,30 @@
 # HA-Shopping-List-Manager
-# 🛒 Shopping List Card with Categories
+# 🛒 Shopping List Manager Card
 
-A powerful Home Assistant Lovelace card that transforms your shopping experience with automatic category grouping, collapsible sections, and a beautiful interface inspired by the Bring! app.
+A powerful Home Assistant Lovelace card that transforms your shopping experience with automatic category grouping, search functionality, recent items, and a beautiful interface inspired by the Bring! app.
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![GitHub Release](https://img.shields.io/github/release/YOUR-USERNAME/shopping-list-card-grouped.svg)](https://github.com/YOUR-USERNAME/shopping-list-card-grouped/releases)
 
 ## ✨ Features
 
-### 🎯 Two Card Types
+### 🎯 Core Features
 
-**1. Individual Shopping List Card**
-- Quick add/remove items from your todo list
-- Quantity controls with +/- buttons
-- Custom icons and colors
-- Image support for visual appeal
-- Horizontal and vertical layouts
-
-**2. Category Group Card (NEW!)**
-- **Auto-groups items by category** (Bring! app style)
-- **Collapsible category sections** with emojis
-- **Item counters** for each category
-- **Responsive grid layout**
-- Perfect for organized shopping
+- **Smart Search** - Search through 100+ pre-configured products or add custom items
+- **Category Grouping** - Items automatically organized by category with emoji indicators
+- **Recently Used** - Quick access to your most frequently added items
+- **Custom Products** - Add your own products with custom icons and images
+- **Flexible Layouts** - Choose between grid or list view
+- **Collapsible Sections** - Expand/collapse categories to organize your shopping
+- **Visual Feedback** - Items on your list are highlighted with color indicators
+- **Keyboard Navigation** - Full keyboard support for accessibility (Arrow keys, Enter, Escape)
 
 ### 🎨 Customization
 
 - Custom icons (Material Design Icons built-in)
-- Custom colors (names or hex codes)
+- Custom colors for primary, secondary, and recent sections
 - Product images support
-- Quantity tracking
-- Theme-aware design
+- Responsive grid layout with configurable columns
+- Theme-aware design that adapts to your Home Assistant theme
 
 ## 📦 Installation
 
@@ -39,220 +33,194 @@ A powerful Home Assistant Lovelace card that transforms your shopping experience
 1. Open HACS in Home Assistant
 2. Click on **Frontend**
 3. Click the **⋮** menu (top right) → **Custom repositories**
-4. Add repository URL: `https://github.com/YOUR-USERNAME/shopping-list-card-grouped`
+4. Add repository URL: `https://github.com/thekiwismarthome/HA-Shopping-List-Manager`
 5. Category: **Lovelace**
 6. Click **Add**
-7. Find "Shopping List Card with Categories" and click **Download**
+7. Find "Shopping List Manager" and click **Download**
 8. Restart Home Assistant
 
 ### Manual Installation
 
-1. Download `shopping-list-card-grouped.js` from the latest release
-2. Copy it to `/config/www/shopping-list-card-grouped.js`
+1. Download `shopping-list-manager.js` from the latest release
+2. Copy it to `/config/www/shopping-list-manager.js`
 3. Add the resource in Home Assistant:
    - Go to **Settings** → **Dashboards** → **Resources** (⋮ menu)
    - Click **+ Add Resource**
-   - URL: `/local/shopping-list-card-grouped.js`
+   - URL: `/local/shopping-list-manager.js`
    - Resource type: **JavaScript Module**
 4. Clear browser cache and restart Home Assistant
 
 ## 🚀 Quick Start
 
-### Individual Cards
+### Basic Configuration
 
 ```yaml
-type: custom:shopping-list-card
-title: Milk
+type: custom:shopping-list-manager
 todo_list: todo.shopping_list
-category: "Fridge, Delivery & Eggs"
-off_icon: mdi:cup
-enable_quantity: true
-layout: vertical
 ```
 
-### Auto-Grouped Category Card
+### With Custom Colors
 
 ```yaml
-type: custom:shopping-list-category-group
+type: custom:shopping-list-manager
 todo_list: todo.shopping_list
-items:
-  # Fruit & Vegetables
-  - title: Apples
-    category: "Fruit & Vegetables"
-    off_icon: mdi:food-apple
-    enable_quantity: true
-  - title: Bananas
-    category: "Fruit & Vegetables"
-    off_icon: mdi:fruit-banana
-    enable_quantity: true
-    
-  # Fridge, Delivery & Eggs
-  - title: Milk
-    category: "Fridge, Delivery & Eggs"
-    off_icon: mdi:cup
-    enable_quantity: true
-  - title: Eggs
-    category: "Fridge, Delivery & Eggs"
-    off_icon: mdi:egg
-    enable_quantity: true
-    
-  # Bread & Bakery
-  - title: Bread
-    category: "Bread & Bakery"
-    off_icon: mdi:baguette
-    enable_quantity: true
+primary_color: '#667eea'
+secondary_color: '#764ba2'
+recent_color: '#ffebee'
+layout: grid
+columns: auto
+```
+
+### List Layout
+
+```yaml
+type: custom:shopping-list-manager
+todo_list: todo.shopping_list
+layout: list
 ```
 
 ## 📋 Configuration Options
 
-### Individual Card Options
-
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `type` | string | **Required** | `custom:shopping-list-card` |
-| `title` | string | **Required** | Item name |
+| `type` | string | **Required** | `custom:shopping-list-manager` |
 | `todo_list` | string | **Required** | Entity ID (e.g., `todo.shopping_list`) |
-| `category` | string | Optional | Category name for organization |
-| `subtitle` | string | Optional | Secondary text |
-| `image` | string | Optional | URL to product image |
-| `layout` | string | `horizontal` | Layout: `horizontal` or `vertical` |
-| `enable_quantity` | boolean | `false` | Show quantity controls |
-| `on_icon` | string | `mdi:check` | Icon when item is on list |
-| `off_icon` | string | `mdi:plus` | Icon when item is off list |
-| `on_color` | string | `green` | Color when on list |
-| `off_color` | string | `grey` | Color when off list |
-| `colorize_background` | boolean | `true` | Tint background when on |
-
-### Category Group Options
-
-| Name | Type | Default | Description |
-|------|------|---------|-------------|
-| `type` | string | **Required** | `custom:shopping-list-category-group` |
-| `todo_list` | string | **Required** | Entity ID |
-| `items` | array | **Required** | Array of item configurations |
-| `category_order` | array | Optional | Custom category sort order |
+| `layout` | string | `grid` | Layout: `grid` or `list` |
+| `columns` | string/integer | `auto` | Grid columns: `auto`, `3`, `4`, `5`, `6`, or `8` |
+| `primary_color` | string | `#667eea` | Primary gradient color (header) |
+| `secondary_color` | string | `#764ba2` | Secondary gradient color (header) |
+| `recent_color` | string | `#ffebee` | Background color for recent items section |
 
 ## 🎨 Supported Categories
 
-The card includes emoji icons for these categories:
+The card includes a pre-configured product database with 100+ items organized into these categories:
 
-- 🥬 Fruit & Vegetables
-- 🥛 Fridge, Delivery & Eggs
-- 🥖 Bread & Bakery
-- 🥩 Meat & Fish
-- 🍝 Pasta, Rice & Canned Food
-- 🧊 Frozen
-- 🍫 Sweets & Snacks
-- 🥤 Drinks
-- 👶 Baby & Kids
-- 🐾 Pet Food
-- 🧹 Household & Cleaning
-- 🧴 Personal Care
-- 📦 Other (custom categories)
+- 🥬 **Fruit & Vegetables** - Apples, Bananas, Tomatoes, Carrots, etc.
+- 🥛 **Fridge, Delivery & Eggs** - Milk, Eggs, Cheese, Butter, etc.
+- 🥖 **Bread & Bakery** - Bread, Bagels, Croissants, Muffins, etc.
+- 🥩 **Meat & Fish** - Chicken, Beef, Salmon, Bacon, etc.
+- 🍝 **Pasta, Rice & Canned Food** - Pasta, Rice, Canned goods, etc.
+- 🧊 **Frozen** - Ice Cream, Frozen Pizza, Frozen Vegetables, etc.
+- 🍫 **Sweets & Snacks** - Chocolate, Cookies, Chips, Popcorn, etc.
+- 🥤 **Drinks** - Water, Juice, Coffee, Tea, Beer, Wine, etc.
+- 🧹 **Household & Cleaning** - Paper Towels, Toilet Paper, Cleaning supplies, etc.
+- 🧴 **Personal Care** - Shampoo, Soap, Toothpaste, Sunscreen, etc.
+- 📦 **Other** - Add custom categories and items
+
+## 🔍 How It Works
+
+1. **Search** - Type in the search box to find products from the database
+2. **Select** - Click on a product or press Enter to add it to your shopping list
+3. **Custom Items** - Type a new product name and select "Add as new product" to create custom items
+4. **Recent Items** - Your 10 most recently added items appear at the top for quick access
+5. **Categories** - Items on your list are automatically grouped by category
+6. **Toggle** - Click on any item to add/remove it from your shopping list
+
+## ⌨️ Keyboard Shortcuts
+
+- **Arrow Up/Down** - Navigate through search suggestions
+- **Enter** - Select the highlighted or first suggestion
+- **Escape** - Close search suggestions or dialogs
+- **Ctrl/Cmd + Enter** - Submit dialog forms (when adding custom products)
 
 ## 🔧 Advanced Examples
 
-### With Custom Images
+### Custom Grid Layout
 
 ```yaml
-type: custom:shopping-list-card
-title: Organic Milk
+type: custom:shopping-list-manager
 todo_list: todo.shopping_list
-category: "Fridge, Delivery & Eggs"
-image: /local/shopping/milk.png
-enable_quantity: true
+layout: grid
+columns: 5
+primary_color: '#4a90e2'
+secondary_color: '#357abd'
 ```
 
-### Horizontal Layout with Custom Colors
+### List View with Custom Colors
 
 ```yaml
-type: custom:shopping-list-card
-title: Premium Coffee
+type: custom:shopping-list-manager
 todo_list: todo.shopping_list
-category: "Drinks"
-layout: horizontal
-off_icon: mdi:coffee
-on_color: brown
-off_color: grey
-enable_quantity: true
+layout: list
+primary_color: '#e74c3c'
+secondary_color: '#c0392b'
+recent_color: '#fadbd8'
 ```
-
-### Complete Shopping Dashboard
-
-```yaml
-views:
-  - title: Shopping
-    path: shopping
-    cards:
-      - type: custom:shopping-list-category-group
-        todo_list: todo.shopping_list
-        items:
-          - title: Apples
-            category: "Fruit & Vegetables"
-            off_icon: mdi:food-apple
-            enable_quantity: true
-          - title: Milk
-            category: "Fridge, Delivery & Eggs"
-            off_icon: mdi:cup
-            enable_quantity: true
-          - title: Bread
-            category: "Bread & Bakery"
-            off_icon: mdi:baguette
-            enable_quantity: true
-          # Add more items...
-```
-
-## 🛠️ Import Tool
-
-Check out the included **Import Tool** (see `import-tool.html`) for:
-- Pre-configured grocery database with 100+ items
-- Auto-icon assignment
-- Bulk YAML generation
-- Custom item import
 
 ## 🆘 Troubleshooting
 
 ### Card not showing up
-1. Clear browser cache (Ctrl+Shift+R)
+
+1. Clear browser cache (Ctrl+Shift+R or Cmd+Shift+R)
 2. Verify resource is added in Settings → Dashboards → Resources
 3. Check browser console (F12) for errors
 4. Restart Home Assistant
 
-### Icons not displaying
-- Make sure you're using valid MDI icons
-- Check https://pictogrammers.com/library/mdi/ for icon names
-- Icon names must start with `mdi:`
+### Items not appearing
 
-### Quantity not working
-- Enable `enable_quantity: true` in your config
-- Make sure you're using a todo entity (not shopping_list entity)
+- Make sure you're using a **todo entity** (not `shopping_list` entity)
+- Check that the entity ID is correct: `todo.shopping_list` or `todo.your_list_name`
+- Verify the todo integration is set up in Home Assistant
+
+### Search not working
+
+- Type at least 2 characters to trigger search
+- Check browser console for JavaScript errors
+- Ensure the card has loaded completely (wait for all sections to render)
+
+### Custom products not saving
+
+- Check browser localStorage permissions
+- Try clearing browser cache and re-adding custom products
+- Ensure you're using a modern browser (Chrome, Firefox, Edge, Safari)
 
 ## 📝 Prerequisites
 
 You need a **todo entity** to use this card. You can use:
 
-- **Local To-do** (built-in to HA)
+- **Local To-do** (built-in to HA) - Recommended
 - **Bring!** integration
 - **Todoist** integration
-- Any other todo integration
+- Any other todo integration that supports the Home Assistant todo API
 
-Add your integration under **Settings → Devices & Services → Add Integration**
+Add your integration under **Settings** → **Devices & Services** → **Add Integration**
+
+## 🔒 Security Features
+
+- **XSS Protection** - All user input is sanitized before rendering
+- **Input Validation** - Proper escaping of HTML attributes and content
+- **Memory Management** - Event listeners are properly cleaned up to prevent leaks
+
+## 🎯 Recent Improvements
+
+- ✅ Fixed duplicate entries in product database
+- ✅ Added XSS protection for all user input
+- ✅ Improved keyboard navigation and accessibility
+- ✅ Enhanced error handling and user feedback
+- ✅ Optimized event listener cleanup to prevent memory leaks
+- ✅ Better search functionality with visual feedback
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+When contributing:
+- Follow existing code style
+- Test your changes thoroughly
+- Update documentation if needed
+- Add comments for complex logic
+
 ## 📄 License
 
-MIT License - feel free to use and modify!
+GPL-3.0 License - See LICENSE file for details
 
 ## 🙏 Credits
 
-Based on the original [Shopping List Card](https://github.com/eyalgal/ha-shopping-list-card) by eyalgal, enhanced with category grouping and additional features.
+A powerful shopping list manager for Home Assistant with automatic categorization, search, and recent items tracking.
 
 ## ⭐ Support
 
-If you find this useful, please star the repository!
+If you find this useful, please star the repository and share it with the Home Assistant community!
 
 ---
 
