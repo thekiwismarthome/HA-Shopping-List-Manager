@@ -174,6 +174,34 @@ recent_color: '#fadbd8'
 - Try clearing browser cache and re-adding custom products
 - Ensure you're using a modern browser (Chrome, Firefox, Edge, Safari)
 
+## 💾 Shared Custom Products Storage
+
+Custom products you add manually are stored in a shared file so they can be accessed by all users:
+
+**File Location:** `/config/www/community/shopping-list-manager/custom-products.json`
+
+### Setup for Shared File Storage
+
+To enable shared storage (so custom products are available to all users), you need to set up a Python script helper:
+
+1. **Enable Python Scripts** (if not already enabled):
+   Add to your `configuration.yaml`:
+   ```yaml
+   python_script:
+   ```
+
+2. **Copy the Helper Script**:
+   - Copy `write_shopping_list.py` from this repository
+   - Place it in `/config/python_scripts/write_shopping_list.py`
+   - Ensure the file has executable permissions if needed
+
+3. **Restart Home Assistant**
+
+4. **Verify Directory Structure**:
+   The directory `/config/www/community/shopping-list-manager/` will be created automatically when you first add a custom product.
+
+**Note:** If the Python script is not configured, custom products will be stored in browser localStorage as a fallback (browser-specific, not shared across users).
+
 ## 📝 Prerequisites
 
 You need a **todo entity** to use this card. You can use:
