@@ -19,9 +19,11 @@ class ShoppingListManager extends HTMLElement {
     this._collapsedSections = new Set();
     this._collapsedRecent = false;
     this._products = this._getProductDatabase();
-    this._customProducts = this._getCustomProducts();
+    this._customProducts = {}; // Will be loaded asynchronously
     this._showAddDialog = false;
     this._pendingProduct = null;
+    this._selectedSuggestionIndex = -1;
+    this._customProductsLoaded = false;
   }
 
   setConfig(config) {
@@ -50,6 +52,23 @@ class ShoppingListManager extends HTMLElement {
     } else if (!this.shadowRoot.innerHTML) {
       this._render();
     }
+  }
+
+  _escapeHtml(text) {
+    if (text == null) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  _escapeHtmlAttr(text) {
+    if (text == null) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
   }
 
   _getProductDatabase() {
@@ -143,25 +162,61 @@ class ShoppingListManager extends HTMLElement {
         { name: "🧴 Shampoo/Conditioner", icon: "mdi:shower" },
         { name: "🧼 Soap/Body Wash", icon: "mdi:spray-bottle" },
         { name: "🪥 Toothpaste", icon: "mdi:tooth" },
-        { name: "☀️ Sunscreen", icon: "mdi:sun-side" },
         { name: "☀️ Sunscreen", icon: "mdi:sun-side" }
       ]
     };
   }
 
-  _getCustomProducts() {
-    const saved = localStorage.getItem('shopping-list-custom-products');
-    if (!saved) return {};
+  async _loadCustomProducts() {
+    if (this._customProductsLoaded) return;
+    
+    // Try to load from shared file first
     try {
-      return JSON.parse(saved);
+      const response = await fetch('/local/community/shopping-list-manager/custom-products.json?t=' + Date.now());
+      if (response.ok) {
+        const data = await response.json();
+        this._customProducts = data || {};
+        this._customProductsLoaded = true;
+        return;
+      }
     } catch (e) {
-      return {};
+      console.log('Could not load custom products from file, checking localStorage...', e);
     }
+    
+    // Fallback to localStorage for backward compatibility
+    const saved = localStorage.getItem('shopping-list-custom-products');
+    if (saved) {
+      try {
+        this._customProducts = JSON.parse(saved);
+      } catch (e) {
+        this._customProducts = {};
+      }
+    }
+    this._customProductsLoaded = true;
   }
 
-  _saveCustomProducts() {
-    localStorage.setItem('shopping-list-custom-products', JSON.stringify(this._customProducts));
+  async _saveCustomProducts() {
+    if (!this._hass) return;
+    
+    const jsonData = JSON.stringify(this._customProducts, null, 2);
+    
+    // Try shell_command
+    try {
+      await this._hass.callService('shell_command', 'write_shopping_list', {
+        data: jsonData
+      });
+      console.log('✅ Custom products saved to shared file via shell_command');
+      this._customProductsLoaded = false;
+    } catch (e) {
+      console.warn('⚠️ Shell command failed:', e);
+      console.warn('Make sure you have this in configuration.yaml:');
+      console.warn('shell_command:\n  write_shopping_list: "echo \'{{ data }}\' > /config/www/community/shopping-list-manager/custom-products.json"');
+    }
+    
+    // Always save to localStorage as backup
+    localStorage.setItem('shopping-list-custom-products', jsonData);
   }
+
 
   _getAllProducts() {
     const all = JSON.parse(JSON.stringify(this._products));
@@ -176,6 +231,11 @@ class ShoppingListManager extends HTMLElement {
 
   async _render() {
     if (!this._config || !this._hass) return;
+
+    // Load custom products if not already loaded
+    if (!this._customProductsLoaded) {
+      await this._loadCustomProducts();
+    }
 
     const state = this._hass.states[this._config.todo_list];
     if (!state) {
@@ -519,7 +579,7 @@ class ShoppingListManager extends HTMLElement {
         </div>
 
         ${recentItems.length > 0 ? this._renderRecentSection(recentItems, currentItems) : ''}
-        ${this._renderCategories(groupedItems, allProducts)}
+        ${this._renderCategories(groupedItems, allProducts, currentItems)}
       </ha-card>
 
       ${this._showAddDialog ? this._renderAddDialog() : ''}
@@ -595,7 +655,7 @@ class ShoppingListManager extends HTMLElement {
     `;
   }
 
-  _renderCategories(groupedItems, allProducts) {
+  _renderCategories(groupedItems, allProducts, currentItems) {
     const categories = Object.keys(allProducts);
     
     const html = categories
@@ -610,13 +670,13 @@ class ShoppingListManager extends HTMLElement {
             <div class="section-header" data-section="${category}">
               <div class="section-title">
                 <span>${emoji}</span>
-                <span>${category}</span>
+                <span>${this._escapeHtml(category)}</span>
                 <span class="section-count">${items.length}</span>
               </div>
               <ha-icon class="expand-icon ${isCollapsed ? 'collapsed' : ''}" icon="mdi:chevron-down"></ha-icon>
             </div>
             <div class="section-content ${isCollapsed ? 'collapsed' : ''}">
-              ${items.map(item => this._renderProductCard(item, [item.name], true)).join('')}
+              ${items.map(item => this._renderProductCard(item, currentItems, true)).join('')}
             </div>
           </div>
         `;
@@ -627,20 +687,24 @@ class ShoppingListManager extends HTMLElement {
 
   _renderProductCard(item, currentItems, onList = false) {
     const isOnList = onList || currentItems.some(i => i.toLowerCase() === item.name.toLowerCase());
+    const escapedName = this._escapeHtmlAttr(item.name || '');
+    const escapedCategory = this._escapeHtmlAttr(item.category || '');
+    const escapedIcon = this._escapeHtmlAttr(item.icon || '');
+    const escapedImage = item.image ? this._escapeHtmlAttr(item.image) : '';
     
     if (item.image) {
       return `
-        <div class="product-card ${isOnList ? 'on-list' : ''}" data-product="${item.name}" data-category="${item.category}" data-icon="${item.icon}" data-image="${item.image}">
-          <img src="${item.image}" class="product-image" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
-          <ha-icon class="product-icon" icon="${item.icon}" style="display: none;"></ha-icon>
-          <div class="product-name">${item.name}</div>
+        <div class="product-card ${isOnList ? 'on-list' : ''}" data-product="${escapedName}" data-category="${escapedCategory}" data-icon="${escapedIcon}" data-image="${escapedImage}">
+          <img src="${escapedImage}" class="product-image" alt="${escapedName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+          <ha-icon class="product-icon" icon="${escapedIcon}" style="display: none;"></ha-icon>
+          <div class="product-name">${this._escapeHtml(item.name)}</div>
         </div>
       `;
     } else {
       return `
-        <div class="product-card ${isOnList ? 'on-list' : ''}" data-product="${item.name}" data-category="${item.category}" data-icon="${item.icon}">
-          <ha-icon class="product-icon" icon="${item.icon}"></ha-icon>
-          <div class="product-name">${item.name}</div>
+        <div class="product-card ${isOnList ? 'on-list' : ''}" data-product="${escapedName}" data-category="${escapedCategory}" data-icon="${escapedIcon}">
+          <ha-icon class="product-icon" icon="${escapedIcon}"></ha-icon>
+          <div class="product-name">${this._escapeHtml(item.name)}</div>
         </div>
       `;
     }
@@ -726,59 +790,119 @@ class ShoppingListManager extends HTMLElement {
       let html = '';
       if (results.length > 0) {
         html = results.slice(0, 8).map(item => {
+          const escapedName = this._escapeHtmlAttr(item.name || '');
+          const escapedCategory = this._escapeHtmlAttr(item.category || '');
+          const escapedIcon = this._escapeHtmlAttr(item.icon || '');
+          const escapedImage = item.image ? this._escapeHtmlAttr(item.image) : '';
           const imageHtml = item.image 
-            ? `<img src="${item.image}" class="suggestion-image" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" /><ha-icon class="suggestion-icon" icon="${item.icon}" style="display: none;"></ha-icon>`
-            : `<ha-icon class="suggestion-icon" icon="${item.icon}"></ha-icon>`;
+            ? `<img src="${escapedImage}" class="suggestion-image" alt="${escapedName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" /><ha-icon class="suggestion-icon" icon="${escapedIcon}" style="display: none;"></ha-icon>`
+            : `<ha-icon class="suggestion-icon" icon="${escapedIcon}"></ha-icon>`;
           
           return `
-            <div class="suggestion-item" data-name="${item.name}" data-category="${item.category}" data-icon="${item.icon}" data-image="${item.image || ''}">
+            <div class="suggestion-item" data-name="${escapedName}" data-category="${escapedCategory}" data-icon="${escapedIcon}" data-image="${escapedImage}">
               ${imageHtml}
               <div class="suggestion-text">
-                <div class="suggestion-name">${item.name}</div>
-                <div class="suggestion-category">${item.category}</div>
+                <div class="suggestion-name">${this._escapeHtml(item.name)}</div>
+                <div class="suggestion-category">${this._escapeHtml(item.category)}</div>
               </div>
             </div>
           `;
         }).join('');
       }
       
+      const escapedQuery = this._escapeHtmlAttr(query);
       html += `
-        <div class="suggestion-item add-new" data-new="${query}">
+        <div class="suggestion-item add-new" data-new="${escapedQuery}">
           <ha-icon class="suggestion-icon" icon="mdi:plus-circle"></ha-icon>
           <div class="suggestion-text">
-            <div class="suggestion-name">Add "${query}" as new product</div>
+            <div class="suggestion-name">Add "${this._escapeHtml(query)}" as new product</div>
           </div>
         </div>
       `;
 
       suggestions.innerHTML = html;
       suggestions.style.display = 'block';
+      this._selectedSuggestionIndex = -1;
 
-      suggestions.querySelectorAll('.suggestion-item').forEach(el => {
-        el.addEventListener('click', () => {
-          if (el.dataset.new) {
-            this._pendingProduct = el.dataset.new;
-            this._showAddDialog = true;
-            this._render();
-          } else {
-            const name = el.dataset.name;
-            const category = el.dataset.category;
-            const icon = el.dataset.icon;
-            const image = el.dataset.image;
-            this._addItem(name);
-            this._addToRecent(name, category, icon, image);
-            searchInput.value = '';
-            suggestions.style.display = 'none';
-          }
-        });
+      const suggestionItems = suggestions.querySelectorAll('.suggestion-item');
+      const handleSuggestionClick = (el) => {
+        if (el.dataset.new) {
+          this._pendingProduct = el.dataset.new;
+          this._showAddDialog = true;
+          this._render();
+        } else {
+          const name = el.dataset.name;
+          const category = el.dataset.category;
+          const icon = el.dataset.icon;
+          const image = el.dataset.image;
+          this._addItem(name);
+          this._addToRecent(name, category, icon, image);
+          searchInput.value = '';
+          suggestions.style.display = 'none';
+          this._selectedSuggestionIndex = -1;
+        }
+      };
+
+      suggestionItems.forEach((el, index) => {
+        el.addEventListener('click', () => handleSuggestionClick(el));
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('role', 'option');
       });
+
+      // Keyboard navigation for search
+      searchInput.addEventListener('keydown', (e) => {
+        if (!suggestions || suggestions.style.display === 'none') return;
+
+        const items = suggestions.querySelectorAll('.suggestion-item');
+        if (items.length === 0) return;
+
+        switch (e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            this._selectedSuggestionIndex = Math.min(this._selectedSuggestionIndex + 1, items.length - 1);
+            items[this._selectedSuggestionIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            items[this._selectedSuggestionIndex].focus();
+            break;
+          case 'ArrowUp':
+            e.preventDefault();
+            this._selectedSuggestionIndex = Math.max(this._selectedSuggestionIndex - 1, -1);
+            if (this._selectedSuggestionIndex >= 0) {
+              items[this._selectedSuggestionIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+              items[this._selectedSuggestionIndex].focus();
+            } else {
+              searchInput.focus();
+            }
+            break;
+          case 'Enter':
+            e.preventDefault();
+            if (this._selectedSuggestionIndex >= 0 && items[this._selectedSuggestionIndex]) {
+              handleSuggestionClick(items[this._selectedSuggestionIndex]);
+            } else if (items.length > 0) {
+              handleSuggestionClick(items[0]);
+            }
+            break;
+          case 'Escape':
+            e.preventDefault();
+            suggestions.style.display = 'none';
+            this._selectedSuggestionIndex = -1;
+            searchInput.value = '';
+            searchInput.focus();
+            break;
+        }
+      });
+
+      suggestions.setAttribute('role', 'listbox');
+      suggestions.setAttribute('aria-label', 'Search suggestions');
     });
 
-    document.addEventListener('click', (e) => {
-      if (!searchInput.contains(e.target) && !suggestions.contains(e.target)) {
+    // Store reference to cleanup listener later
+    this._outsideClickHandler = (e) => {
+      if (suggestions && suggestions.style.display !== 'none' && 
+          !this.shadowRoot.querySelector('.search-section').contains(e.target)) {
         suggestions.style.display = 'none';
       }
-    });
+    };
+    document.addEventListener('click', this._outsideClickHandler);
 
     this.shadowRoot.querySelectorAll('.section-header').forEach(header => {
       header.addEventListener('click', () => {
@@ -843,11 +967,31 @@ class ShoppingListManager extends HTMLElement {
         }
       });
 
-      cancelBtn.addEventListener('click', () => {
+      const closeDialog = () => {
         this._showAddDialog = false;
         this._pendingProduct = null;
         this._render();
-      });
+      };
+
+      cancelBtn.addEventListener('click', closeDialog);
+
+      // Keyboard support for dialog
+      const dialogKeydown = (e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeDialog();
+        } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+          e.preventDefault();
+          saveBtn.click();
+        }
+      };
+      overlay.addEventListener('keydown', dialogKeydown);
+      
+      // Focus first input when dialog opens
+      const nameInput = this.shadowRoot.getElementById('newProductName');
+      if (nameInput) {
+        setTimeout(() => nameInput.focus(), 100);
+      }
 
       saveBtn.addEventListener('click', () => {
         const name = this.shadowRoot.getElementById('newProductName').value.trim();
@@ -856,7 +1000,13 @@ class ShoppingListManager extends HTMLElement {
         const image = this.shadowRoot.getElementById('newProductImage').value.trim();
 
         if (!name) {
-          alert('Please enter a product name');
+          // Better error feedback - could use HA notification service in future
+          const nameInput = this.shadowRoot.getElementById('newProductName');
+          nameInput.style.borderColor = '#f44336';
+          nameInput.focus();
+          setTimeout(() => {
+            if (nameInput) nameInput.style.borderColor = '';
+          }, 3000);
           return;
         }
 
@@ -886,8 +1036,12 @@ class ShoppingListManager extends HTMLElement {
         entity_id: this._config.todo_list,
         item: name
       });
+      // Force re-render to update UI
+      this._lastUpdate = null;
+      this._render();
     } catch (e) {
-      console.error('Failed to add item', e);
+      console.error('Failed to add item:', e);
+      // Could show user-friendly error notification here
     }
   }
 
@@ -897,8 +1051,20 @@ class ShoppingListManager extends HTMLElement {
         entity_id: this._config.todo_list,
         item: name
       });
+      // Force re-render to update UI
+      this._lastUpdate = null;
+      this._render();
     } catch (e) {
-      console.error('Failed to remove item', e);
+      console.error('Failed to remove item:', e);
+      // Could show user-friendly error notification here
+    }
+  }
+
+  disconnectedCallback() {
+    // Clean up event listeners to prevent memory leaks
+    if (this._outsideClickHandler) {
+      document.removeEventListener('click', this._outsideClickHandler);
+      this._outsideClickHandler = null;
     }
   }
 
