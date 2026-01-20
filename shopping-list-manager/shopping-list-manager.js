@@ -25,17 +25,21 @@ class ShoppingListManager extends HTMLElement {
   }
 
   setConfig(config) {
-    if (!config.todo_list) {
-      throw new Error('You must define a todo_list entity_id.');
-    }
-    this._config = {
-      columns: 'auto',
-      layout: 'grid',
-      primary_color: '#667eea',
-      secondary_color: '#764ba2',
-      recent_color: '#ffebee',
-      ...config
-    };
+		if (!config.todo_list) {
+			throw new Error('You must define a todo_list entity_id.');
+		}
+		this._config = {
+			columns: 'auto',
+			layout: 'grid',
+			primary_color: '#667eea',
+			secondary_color: '#764ba2',
+			recent_color: '#ffebee',
+			recent_off_color: '#000000',
+			recent_on_color: '#4caf50',
+			category_off_color: '#757575',
+			category_on_color: '#2e7d32',
+			...config
+			};
   }
 
   set hass(hass) {
@@ -305,6 +309,22 @@ class ShoppingListManager extends HTMLElement {
         .recent-section .expand-icon {
           color: #c62828;
         }
+				.recent-section .product-card:not(.on-list) .product-name {
+					color: ${this._config.recent_off_color};
+				}
+				.recent-section .product-card:not(.on-list) ha-icon.product-icon {
+					color: ${this._config.recent_off_color};
+				}
+				.recent-section .product-card.on-list {
+					background: #e8f5e9;
+					border-color: ${this._config.recent_on_color};
+				}
+				.recent-section .product-card.on-list .product-name {
+					color: ${this._config.recent_on_color};
+				}
+				.recent-section .product-card.on-list ha-icon.product-icon {
+					color: ${this._config.recent_on_color};
+				}
         .section {
           border-bottom: 1px solid var(--divider-color);
         }
@@ -359,7 +379,22 @@ class ShoppingListManager extends HTMLElement {
         .section-content.collapsed {
           display: none;
         }
-        
+        .section:not(.recent-section) .product-card:not(.on-list) .product-name {
+					color: ${this._config.category_off_color};
+				}
+				.section:not(.recent-section) .product-card:not(.on-list) ha-icon.product-icon {
+					color: ${this._config.category_off_color};
+				}
+				.section:not(.recent-section) .product-card.on-list {
+					background: #e8f5e9;
+					border-color: ${this._config.category_on_color};
+				}
+				.section:not(.recent-section) .product-card.on-list .product-name {
+					color: ${this._config.category_on_color};
+				}
+				.section:not(.recent-section) .product-card.on-list ha-icon.product-icon {
+					color: ${this._config.category_on_color};
+				}
         .product-card {
           ${this._config.layout === 'grid' ? 'aspect-ratio: 1;' : ''}
           border: 2px solid var(--divider-color);
@@ -974,21 +1009,20 @@ class ShoppingListManagerEditor extends HTMLElement {
         </div>
       </div>
       <div class="row">
-        <ha-textfield id="primary_color" label="Primary Color" value="#667eea"></ha-textfield>
-        <ha-textfield id="secondary_color" label="Secondary Color" value="#764ba2"></ha-textfield>
-      </div>
-      <div class="row">
-        <ha-textfield id="recent_color" label="Recent Section Color" value="#ffebee"></ha-textfield>
-        <ha-textfield id="recent_color" label="Recent Section Color" value="#ffebee"></ha-textfield>
-      </div>
-      <div class="row">
-        <ha-textfield id="primary_color" label="Primary Color" value="#667eea"></ha-textfield>
-        <ha-textfield id="secondary_color" label="Secondary Color" value="#764ba2"></ha-textfield>
-      </div>
-      <div class="row">
-        <ha-textfield id="recent_color" label="Recent Section Color" value="#ffebee"></ha-textfield>
-        <ha-textfield id="recent_color" label="Recent Section Color" value="#ffebee"></ha-textfield>
-      </div>
+				<ha-textfield id="primary_color" label="Primary Color" value="#667eea"></ha-textfield>
+				<ha-textfield id="secondary_color" label="Secondary Color" value="#764ba2"></ha-textfield>
+			</div>
+			<div class="row">
+				<ha-textfield id="recent_color" label="Recent Section Background" value="#ffebee"></ha-textfield>
+			</div>
+			<div class="row">
+				<ha-textfield id="recent_off_color" label="Recent Items (Not on List)" value="#000000"></ha-textfield>
+				<ha-textfield id="recent_on_color" label="Recent Items (On List)" value="#4caf50"></ha-textfield>
+			</div>
+			<div class="row">
+				<ha-textfield id="category_off_color" label="Category Items (Not on List)" value="#757575"></ha-textfield>
+				<ha-textfield id="category_on_color" label="Category Items (On List)" value="#2e7d32"></ha-textfield>
+			</div>
     `;
 
     const ep = this.shadowRoot.querySelector('#todo_list');
@@ -997,18 +1031,25 @@ class ShoppingListManagerEditor extends HTMLElement {
     const primaryColor = this.shadowRoot.querySelector('#primary_color');
     const secondaryColor = this.shadowRoot.querySelector('#secondary_color');
     const recentColor = this.shadowRoot.querySelector('#recent_color');
+		const recentOffColor = this.shadowRoot.querySelector('#recent_off_color');
+		const recentOnColor = this.shadowRoot.querySelector('#recent_on_color');
+		const categoryOffColor = this.shadowRoot.querySelector('#category_off_color');
+		const categoryOnColor = this.shadowRoot.querySelector('#category_on_color'); 
 
     if (this._hass) {
       ep.hass = this._hass;
       ep.includeDomains = ['todo'];
       ep.value = this._config?.todo_list || '';
+			recentOffColor.value = this._config?.recent_off_color || '#000000';  
+			recentOnColor.value = this._config?.recent_on_color || '#4caf50';    
 
       layoutSel.value = this._config?.layout || 'grid';
       columnsSel.value = this._config?.columns || 'auto';
       primaryColor.value = this._config?.primary_color || '#667eea';
       secondaryColor.value = this._config?.secondary_color || '#764ba2';
       recentColor.value = this._config?.recent_color || '#ffebee';
-
+			categoryOffColor.value = this._config?.category_off_color || '#757575';
+			categoryOnColor.value = this._config?.category_on_color || '#2e7d32';
       const updateConfig = () => {
         this._config = {
           ...this._config,
@@ -1017,7 +1058,11 @@ class ShoppingListManagerEditor extends HTMLElement {
           columns: columnsSel.value,
           primary_color: primaryColor.value,
           secondary_color: secondaryColor.value,
-          recent_color: recentColor.value
+          recent_color: recentColor.value,
+					recent_off_color: recentOffColor.value,
+					recent_on_color: recentOnColor.value,
+					category_off_color: categoryOffColor.value,
+					category_on_color: categoryOnColor.value
         };
         this.dispatchEvent(new CustomEvent('config-changed', {
           detail: { config: this._config },
@@ -1032,6 +1077,10 @@ class ShoppingListManagerEditor extends HTMLElement {
       primaryColor.addEventListener('input', updateConfig);
       secondaryColor.addEventListener('input', updateConfig);
       recentColor.addEventListener('input', updateConfig);
+			recentOffColor.addEventListener('input', updateConfig);
+			recentOnColor.addEventListener('input', updateConfig);
+			categoryOffColor.addEventListener('input', updateConfig);
+			categoryOnColor.addEventListener('input', updateConfig);			
     }
 
     this._rendered = true;
