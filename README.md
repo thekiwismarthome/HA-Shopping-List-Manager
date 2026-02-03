@@ -1,112 +1,97 @@
-# HA-Shopping-List-Manager
-# 🛒 Shopping List Manager Card
+# 🛒 Shopping List Manager for Home Assistant
 
-A powerful Home Assistant Lovelace card that transforms your shopping experience with automatic category grouping, search functionality, recent items, and a beautiful interface inspired by the Bring! app.
+A modern, feature-rich shopping list integration for Home Assistant with intelligent product cataloging, auto-image search, and multi-list support.
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+## What It Does
 
-## ✨ Features
+Shopping List Manager provides a visual, tile-based shopping list interface directly in your Home Assistant dashboard. It maintains a persistent product catalog so you never have to re-enter product details, automatically searches for product images from your local filesystem, and supports multiple independent shopping lists (groceries, hardware, pharmacy, etc.).
 
-### 🎯 Core Features
+Unlike basic to-do lists, this integration separates product metadata (what exists) from your active shopping list (what you need), ensuring fast product additions and consistent data across shopping trips.
 
-- **Smart Search** - Search through 100+ pre-configured products or add custom items
-- **Category Grouping** - Items automatically organized by category with emoji indicators
-- **Recently Used** - Quick access to your most frequently added items
-- **Custom Products** - Add your own products with custom icons and images
-- **Flexible Layouts** - Choose between grid or list view
-- **Collapsible Sections** - Expand/collapse categories to organize your shopping
-- **Visual Feedback** - Items on your list are highlighted with color indicators
-- **Keyboard Navigation** - Full keyboard support for accessibility (Arrow keys, Enter, Escape)
+## Features
 
-### 🎨 Customization
+### 🎨 Modern UI
+- **Grid or List Layout** - Switch between compact tiles or detailed list view
+- **Visual Product Tiles** - Product images with emoji or URL support
+- **Fuzzy Search** - Find products quickly with smart search
+- **Categories** - Organize by Fruit & Veg, Fridge, Pantry, Bakery, Frozen, etc.
+- **Recently Used** - Quick-add from your most recent products
+- **Haptic Feedback** - Optional tactile feedback on mobile devices
 
-- Custom icons (Material Design Icons built-in)
-- Custom colors for primary, secondary, and recent sections
-- Product images support
-- Responsive grid layout with configurable columns
-- Theme-aware design that adapts to your Home Assistant theme
+### 🧠 Smart Features
+- **Persistent Product Catalog** - Products remember name, category, unit, and image
+- **Auto Image Search** - Automatically finds product images from `/local/images/` directory
+- **Emoji Support** - Use emojis as product images (🍎🥛🍞)
+- **Quantity Management** - Tap tiles to increment, long-press to edit or delete
+- **Multi-List Support** - Separate lists for groceries, hardware, pharmacy, etc.
+- **Live Updates** - Changes sync in real-time via WebSocket
 
-## 📦 Installation
+### ⚙️ Flexible Configuration
+- **Visual GUI Editor** - Configure everything through Home Assistant UI
+- **Customizable Layout** - 2-6 products per row in grid mode
+- **Show/Hide Options** - Toggle completed items and section headers
+- **Per-Card Settings** - Each card can have unique configuration
 
-### HACS (Recommended)
+## Installation
+
+### Via HACS (Recommended - Coming Soon)
 
 1. Open HACS in Home Assistant
-2. Click on **Frontend**
-3. Click the **⋮** menu (top right) → **Custom repositories**
-4. Add repository URL: `https://github.com/thekiwismarthome/HA-Shopping-List-Manager`
-5. Category: **Lovelace**
-6. Click **Add**
-7. Find "Shopping List Manager" and click **Download**
-8. Restart Home Assistant
+2. Click on "Integrations"
+3. Click the "+" button
+4. Search for "Shopping List Manager"
+5. Click "Download"
+6. Restart Home Assistant
 
-### Manual Installation
+### Manual Installation via GitHub
 
-1. Download `shopping-list-manager.js` from the latest release
-2. Copy it to `/config/www/shopping-list-manager.js`
-3. Add the resource in Home Assistant:
-   - Go to **Settings** → **Dashboards** → **Resources** (⋮ menu)
-   - Click **+ Add Resource**
-   - URL: `/local/shopping-list-manager.js`
-   - Resource type: **JavaScript Module**
-4. Clear browser cache and restart Home Assistant
+1. **Download the integration:**
+   ```bash
+   cd /config/custom_components
+   git clone https://github.com/yourusername/shopping-list-manager.git shopping_list_manager
+   ```
 
-## 🚀 Quick Start
+   Or download and extract the [latest release](https://github.com/yourusername/shopping-list-manager/releases) to `/config/custom_components/shopping_list_manager/`
+
+2. **Ensure folder structure looks like this:**
+   ```
+   /config/custom_components/shopping_list_manager/
+   ├── __init__.py
+   ├── manifest.json
+   ├── config_flow.py
+   ├── const.py
+   ├── manager.py
+   ├── models.py
+   ├── websocket_api.py
+   └── www/
+       └── shopping_list_card.js
+   ```
+
+3. **Restart Home Assistant**
+
+4. **Add the integration:**
+   - Go to Settings → Devices & Services
+   - Click "+ Add Integration"
+   - Search for "Shopping List Manager"
+   - Click to add
+
+5. **Add the card resources:**
+   - Go to Settings → Dashboards → Resources (three-dot menu, top right)
+   - Click "+ Add Resource"
+   - URL: `/hacsfiles/shopping_list_manager/shopping_list_card.js`
+   - Resource type: JavaScript Module
+   - Click "Create"
+
+## Quick Start Guide
 
 ### Basic Configuration
 
-```yaml
-type: custom:shopping-list-manager
-```
+Add a card to your dashboard:
 
-
-## 🎨 Supported Categories
-
-The card includes a pre-configured product database with 100+ items organized into these categories:
-
-- 🥬 **Fruit & Vegetables** - Apples, Bananas, Tomatoes, Carrots, etc.
-- 🥛 **Fridge, Delivery & Eggs** - Milk, Eggs, Cheese, Butter, etc.
-- 🥖 **Bread & Bakery** - Bread, Bagels, Croissants, Muffins, etc.
-- 🥩 **Meat & Fish** - Chicken, Beef, Salmon, Bacon, etc.
-- 🍝 **Pasta, Rice & Canned Food** - Pasta, Rice, Canned goods, etc.
-- 🧊 **Frozen** - Ice Cream, Frozen Pizza, Frozen Vegetables, etc.
-- 🍫 **Sweets & Snacks** - Chocolate, Cookies, Chips, Popcorn, etc.
-- 🥤 **Drinks** - Water, Juice, Coffee, Tea, Beer, Wine, etc.
-- 🧹 **Household & Cleaning** - Paper Towels, Toilet Paper, Cleaning supplies, etc.
-- 🧴 **Personal Care** - Shampoo, Soap, Toothpaste, Sunscreen, etc.
-- 📦 **Other** - Add custom categories and items
-
-## 🔍 How It Works
-
-1. **Search** - Type in the search box to find products from the database
-2. **Select** - Click on a product or press Enter to add it to your shopping list
-3. **Custom Items** - Type a new product name and select "Add as new product" to create custom items
-4. **Recent Items** - Your 10 most recently added items appear at the top for quick access
-5. **Categories** - Items on your list are automatically grouped by category
-6. **Toggle** - Click on any item to add/remove it from your shopping list
-
-## ⌨️ Keyboard Shortcuts
-
-- **Arrow Up/Down** - Navigate through search suggestions
-- **Enter** - Select the highlighted or first suggestion
-- **Escape** - Close search suggestions or dialogs
-- **Ctrl/Cmd + Enter** - Submit dialog forms (when adding custom products)
-
-## 🔧 Advanced Examples
-
-# Recent Updates
-
-## Multi-List Support (Feb 2026)
-
-**What Changed:**
-- Cards can now manage multiple independent shopping lists (groceries, hardware, pharmacy, etc.)
-- Each card instance uses a unique `list_id` to keep product catalogs completely separate
-- Existing single-list setups continue working unchanged (default `list_id: groceries`)
-
-**New Configuration:**
 ```yaml
 type: custom:shopping-list-card
 title: Shopping List
-list_id: groceries          # NEW: identifies which list this card manages
+list_id: groceries
 products_per_row: 3
 layout: grid
 haptics: medium
@@ -114,44 +99,154 @@ hide_completed: false
 hide_section_headers: false
 ```
 
-**GUI Editor:**
-- Added "List ID" field in visual editor (sanitized to a-z, 0-9, underscore)
-- Title field now editable in GUI
-- All settings now appear in YAML preview
+### Configuration Options
 
-**Storage:**
-- Default list (`groceries`) uses original storage keys for backward compatibility
-- Additional lists use namespaced keys: `shopping_list_manager.{list_id}.products`
-- No data migration required - existing products load automatically
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `type` | string | **Required** | Must be `custom:shopping-list-card` |
+| `title` | string | `Shopping List` | Card title |
+| `list_id` | string | `groceries` | Unique identifier for this list |
+| `products_per_row` | number | `3` | Tiles per row (2-6) in grid mode |
+| `layout` | string | `grid` | `grid` or `list` |
+| `haptics` | string | `medium` | `light`, `medium`, `heavy`, or `none` |
+| `hide_completed` | boolean | `false` | Hide items with quantity 0 |
+| `hide_section_headers` | boolean | `false` | Hide category headers |
 
-**Bug Fixes:**
-- Fixed GUI editor closing when selecting dropdown options (HA 2026.1 compatibility)
-- Fixed settings not persisting due to frozen config objects
-- Fixed passive touch event listener violations
+### Supported Categories
 
-## Technical Details
+The integration includes these predefined categories:
 
-**Files Modified:**
-- `websocket_api.py` - Added optional `list_id` param to all WebSocket commands
-- `manager.py` - Per-list storage with lazy loading and backward-compatible groceries list
-- `shopping_list_card.js` - List ID field in editor, all WebSocket calls include list_id
+- 🥬 **Fruit & Veg** (`fruitveg`)
+- 🥛 **Fridge** (`fridge`)
+- 🥫 **Pantry** (`pantry`)
+- 🍞 **Bakery** (`bakery`)
+- 🧊 **Frozen** (`frozen`)
+- 🧴 **Household** (`household`)
+- 🐕 **Pets** (`pets`)
+- 👶 **Baby** (`baby`)
+- 🛒 **Other** (`other`)
 
-**Breaking Changes:** None - existing single-list setups work without any configuration changes
+### Multiple Lists
 
+Create separate lists for different purposes:
 
-## 🤝 Contributing
+```yaml
+# Groceries card
+type: custom:shopping-list-card
+title: Groceries
+list_id: groceries
+products_per_row: 3
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+# Hardware store card  
+type: custom:shopping-list-card
+title: Hardware
+list_id: hardware
+products_per_row: 4
 
-When contributing:
-- Follow existing code style
-- Test your changes thoroughly
-- Update documentation if needed
-- Add comments for complex logic
+# Pharmacy card
+type: custom:shopping-list-card
+title: Pharmacy
+list_id: pharmacy
+products_per_row: 3
+```
 
-## 📄 License
+Each `list_id` maintains completely separate products and quantities.
 
-GPL-3.0 License - See LICENSE file for details
+### Auto Image Search
+
+Place product images in `/config/www/images/` (accessible as `/local/images/` in HA):
+
+```
+/config/www/images/
+├── apple.png
+├── milk.jpg
+├── bread.png
+└── ...
+```
+
+When you search for "apple", the integration automatically finds and uses `apple.png`. Images are matched using fuzzy search, so `Granny_Smith_Apple.jpg` will match "granny smith".
+
+**Supported formats:** `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg`
+
+## How It Works
+
+### Architecture
+
+**Two-Layer Data Model:**
+1. **Product Catalog** - Persistent store of all products you've ever added (name, category, unit, image)
+2. **Active List** - Temporary quantities for your current shopping trip
+
+This separation means:
+- ✅ Add products once, use forever
+- ✅ Product details stay consistent
+- ✅ Fast quantity adjustments (just tap)
+- ✅ Shopping history preserved
+
+### Data Storage
+
+- **Backend:** `/config/.storage/shopping_list_manager.{list_id}.products`
+- **Backend:** `/config/.storage/shopping_list_manager.{list_id}.active_list`
+- **Frontend:** Card settings stored in dashboard YAML
+
+Default list (`groceries`) uses backward-compatible flat keys for existing installations.
+
+### WebSocket Communication
+
+The card communicates with Home Assistant via WebSocket API:
+- `shopping_list_manager/get_products` - Fetch product catalog
+- `shopping_list_manager/get_active` - Fetch active quantities
+- `shopping_list_manager/add_product` - Add/update product
+- `shopping_list_manager/set_qty` - Update quantity
+- `shopping_list_manager/delete_product` - Remove product
+
+Changes sync instantly across all open browsers/apps via 3-second polling.
+
+## Troubleshooting
+
+**Products disappeared after update:**
+- Check `/config/.storage/shopping_list_manager.products` exists
+- Clear browser cache (Ctrl+Shift+R or Cmd+Shift+R)
+- Delete `/config/custom_components/shopping_list_manager/__pycache__` and restart HA
+
+**Images not loading:**
+- Verify images are in `/config/www/images/`
+- Check browser console (F12) for 404 errors
+- Ensure filenames match product names (fuzzy match supported)
+
+**Card editor closes when selecting options:**
+- Update to latest version (fixed in v1.0.1+)
+- Hard refresh browser (Ctrl+F5)
+
+**"Invalid config" error:**
+- Ensure all required fields present
+- Check YAML indentation
+- Validate `list_id` contains only letters, numbers, underscores
+
+## Contributing
+
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details
+
+## Credits
+
+Created for the Home Assistant community. Special thanks to all contributors and testers.
+
+## Support
+
+- 🐛 [Report bugs](https://github.com/yourusername/shopping-list-manager/issues)
+- 💡 [Request features](https://github.com/yourusername/shopping-list-manager/issues)
+- 💬 [Community forum](https://community.home-assistant.io/)
+
+---
+
+**Note:** Replace `yourusername` with your actual GitHub username in all URLs.
 
 ## 🙏 Credits
 
