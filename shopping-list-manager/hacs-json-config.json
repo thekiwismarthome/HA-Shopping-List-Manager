@@ -1,7 +1,0 @@
-{
-  "name": "Shopping List Card with Categories",
-  "content_in_root": false,
-  "filename": "shopping-list-card.js",
-  "render_readme": true,
-  "homeassistant": "2024.1.0"
-}
