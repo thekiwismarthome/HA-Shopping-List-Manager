@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "shopping_list_manager.products",
+  "data": {
+    "apple": {
+      "key": "apple",
+      "name": "Apple",
+      "category": "fruitveg",
+      "unit": "pcs",
+      "image": "https://a.fsimg.co.nz/product/retail/fan/image/400x400/5047072.png"
+    },
+    "pear": {
+      "key": "pear",
+      "name": "Pear",
+      "category": "fruitveg",
+      "unit": "pcs",
+      "image": "🍐"
+    },
+    "cucumber": {
+      "key": "cucumber",
+      "name": "Cucumber",
+      "category": "fruitveg",
+      "unit": "pcs",
+      "image": "🥒"
+    },
+    "tomato": {
+      "key": "tomato",
+      "name": "Tomato",
+      "category": "fruitveg",
+      "unit": "pcs",
+      "image": "https://a.fsimg.co.nz/product/retail/fan/image/400x400/5040098.png"
+    },
+    "milk": {
+      "key": "milk",
+      "name": "Milk",
+      "category": "fridge",
+      "unit": "pcs",
+      "image": "🥛"
+    },
+    "red_capsicum": {
+      "key": "red_capsicum",
+      "name": "Red Capsicum",
+      "category": "fruitveg",
+      "unit": "pcs",
+      "image": "https://a.fsimg.co.nz/product/retail/fan/image/400x400/5046503.png"
+    },
+    "green_capsicum": {
+      "key": "green_capsicum",
+      "name": "Green Capsicum",
+      "category": "fruitveg",
+      "unit": "pcs",
+      "image": "https://a.fsimg.co.nz/product/retail/fan/image/400x400/5046505.png"
+    },
+    "pams_value_lite_milk_3l": {
+      "key": "pams_value_lite_milk_3l",
+      "name": "Pams Value Lite Milk 3l",
+      "category": "fridge",
+      "unit": "pcs",
+      "image": "https://a.fsimg.co.nz/product/retail/fan/image/400x400/5201489.png"
+    },
+    "maggi_2_minute_noodles": {
+      "key": "maggi_2_minute_noodles",
+      "name": "Maggi 2 Minute Noodles - Chicken",
+      "category": "pantry",
+      "unit": "pcs",
+      "image": "https://d329st1qht6i0g.cloudfront.net/wp-content/uploads/sites/7/2023/04/27150639/232222106.jpeg"
+    },
+    "test": {
+      "key": "test",
+      "name": "Test",
+      "category": "other",
+      "unit": "pcs",
+      "image": "🛒"
+    }
+  }
+}

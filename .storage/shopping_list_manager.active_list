@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "shopping_list_manager.active_list",
+  "data": {
+    "apple": {
+      "qty": 3
+    },
+    "red_capsicum": {
+      "qty": 1
+    },
+    "green_capsicum": {
+      "qty": 2
+    },
+    "cucumber": {
+      "qty": 1
+    },
+    "pams_value_lite_milk_3l": {
+      "qty": 2
+    },
+    "maggi_2_minute_noodles": {
+      "qty": 1
+    },
+    "test": {
+      "qty": 1
+    }
+  }
+}
