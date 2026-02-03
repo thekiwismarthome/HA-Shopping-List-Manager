@@ -56,40 +56,8 @@ A powerful Home Assistant Lovelace card that transforms your shopping experience
 
 ```yaml
 type: custom:shopping-list-manager
-todo_list: todo.shopping_list
 ```
 
-### With Custom Colors
-
-```yaml
-type: custom:shopping-list-manager
-todo_list: todo.shopping_list
-primary_color: '#667eea'
-secondary_color: '#764ba2'
-recent_color: '#ffebee'
-layout: grid
-columns: auto
-```
-
-### List Layout
-
-```yaml
-type: custom:shopping-list-manager
-todo_list: todo.shopping_list
-layout: list
-```
-
-## 📋 Configuration Options
-
-| Name | Type | Default | Description |
-|------|------|---------|-------------|
-| `type` | string | **Required** | `custom:shopping-list-manager` |
-| `todo_list` | string | **Required** | Entity ID (e.g., `todo.shopping_list`) |
-| `layout` | string | `grid` | Layout: `grid` or `list` |
-| `columns` | string/integer | `auto` | Grid columns: `auto`, `3`, `4`, `5`, `6`, or `8` |
-| `primary_color` | string | `#667eea` | Primary gradient color (header) |
-| `secondary_color` | string | `#764ba2` | Secondary gradient color (header) |
-| `recent_color` | string | `#ffebee` | Background color for recent items section |
 
 ## 🎨 Supported Categories
 
@@ -125,147 +93,51 @@ The card includes a pre-configured product database with 100+ items organized in
 
 ## 🔧 Advanced Examples
 
-### Custom Grid Layout
+# Recent Updates
 
+## Multi-List Support (Feb 2026)
+
+**What Changed:**
+- Cards can now manage multiple independent shopping lists (groceries, hardware, pharmacy, etc.)
+- Each card instance uses a unique `list_id` to keep product catalogs completely separate
+- Existing single-list setups continue working unchanged (default `list_id: groceries`)
+
+**New Configuration:**
 ```yaml
-type: custom:shopping-list-manager
-todo_list: todo.shopping_list
+type: custom:shopping-list-card
+title: Shopping List
+list_id: groceries          # NEW: identifies which list this card manages
+products_per_row: 3
 layout: grid
-columns: 5
-primary_color: '#4a90e2'
-secondary_color: '#357abd'
+haptics: medium
+hide_completed: false
+hide_section_headers: false
 ```
 
-### List View with Custom Colors
+**GUI Editor:**
+- Added "List ID" field in visual editor (sanitized to a-z, 0-9, underscore)
+- Title field now editable in GUI
+- All settings now appear in YAML preview
 
-```yaml
-type: custom:shopping-list-manager
-todo_list: todo.shopping_list
-layout: list
-primary_color: '#e74c3c'
-secondary_color: '#c0392b'
-recent_color: '#fadbd8'
-```
+**Storage:**
+- Default list (`groceries`) uses original storage keys for backward compatibility
+- Additional lists use namespaced keys: `shopping_list_manager.{list_id}.products`
+- No data migration required - existing products load automatically
 
-## 🆘 Troubleshooting
+**Bug Fixes:**
+- Fixed GUI editor closing when selecting dropdown options (HA 2026.1 compatibility)
+- Fixed settings not persisting due to frozen config objects
+- Fixed passive touch event listener violations
 
-### Card not showing up
+## Technical Details
 
-1. Clear browser cache (Ctrl+Shift+R or Cmd+Shift+R)
-2. Verify resource is added in Settings → Dashboards → Resources
-3. Check browser console (F12) for errors
-4. Restart Home Assistant
+**Files Modified:**
+- `websocket_api.py` - Added optional `list_id` param to all WebSocket commands
+- `manager.py` - Per-list storage with lazy loading and backward-compatible groceries list
+- `shopping_list_card.js` - List ID field in editor, all WebSocket calls include list_id
 
-### Items not appearing
+**Breaking Changes:** None - existing single-list setups work without any configuration changes
 
-- Make sure you're using a **todo entity** (not `shopping_list` entity)
-- Check that the entity ID is correct: `todo.shopping_list` or `todo.your_list_name`
-- Verify the todo integration is set up in Home Assistant
-
-### Search not working
-
-- Type at least 2 characters to trigger search
-- Check browser console for JavaScript errors
-- Ensure the card has loaded completely (wait for all sections to render)
-
-### Custom products not saving to shared file
-
-1. **Check Browser Console** (F12 → Console tab):
-   - Look for messages starting with ✅ (success) or ❌ (error)
-   - If you see "Python script service not available" or "Shell command service not available", the helper is not configured
-   - Check for specific error messages that will guide you to the solution
-
-2. **Verify Setup**:
-   - **Python Script Method**: Ensure `write_shopping_list.py` is in `/config/python_scripts/` and `python_script:` is in `configuration.yaml`
-   - **Shell Command Method**: Ensure `shell_command` is configured in `configuration.yaml` (see `configuration_example.yaml`)
-   - Restart Home Assistant after making configuration changes
-
-3. **Check File Location**:
-   - Navigate to `/config/www/community/shopping-list-manager/custom-products.json`
-   - If the file doesn't exist, check Home Assistant logs for errors
-   - Ensure Home Assistant has write permissions to `/config/www/`
-
-4. **Fallback Behavior**:
-   - If file storage isn't configured, products will save to browser localStorage
-   - This means products are browser-specific and won't be shared
-   - Check console for warnings about localStorage-only storage
-
-## 💾 Shared Custom Products Storage
-
-Custom products you add manually are stored in a shared file so they can be accessed by all users:
-
-**File Location:** `/config/www/community/shopping-list-manager/custom-products.json`
-
-### Setup for Shared File Storage
-
-To enable shared storage (so custom products are available to all users), choose **one** of the following methods:
-
-#### Method 1: Python Script (Recommended)
-
-1. **Enable Python Scripts** (if not already enabled):
-   Add to your `configuration.yaml`:
-   ```yaml
-   python_script:
-   ```
-
-2. **Copy the Helper Script**:
-   - Copy `write_shopping_list.py` from this repository
-   - Place it in `/config/python_scripts/write_shopping_list.py`
-   - Ensure the file has executable permissions if needed
-
-3. **Restart Home Assistant**
-
-#### Method 2: Shell Command (Alternative)
-
-If you prefer not to use Python scripts, add this to your `configuration.yaml`:
-
-```yaml
-shell_command:
-  write_shopping_list_file: 'mkdir -p /config/www/community/shopping-list-manager && echo "$1" > /config/www/community/shopping-list-manager/custom-products.json'
-```
-
-**Note:** This method requires proper escaping. The Python script method is safer and recommended.
-
-### Verifying Setup
-
-1. **Check Browser Console** (F12):
-   - When adding a custom product, look for: `"Custom products saved to shared file successfully"`
-   - If you see warnings, the file storage is not configured
-
-2. **Check File Location**:
-   - Navigate to `/config/www/community/shopping-list-manager/custom-products.json` in your Home Assistant file system
-   - The file should be created automatically when you add your first custom product
-
-3. **Fallback Behavior**:
-   - If neither method is configured, custom products will be stored in browser localStorage as a fallback
-   - This means products are browser-specific and won't be shared across users
-   - Check the browser console for warnings if the file isn't being created
-
-## 📝 Prerequisites
-
-You need a **todo entity** to use this card. You can use:
-
-- **Local To-do** (built-in to HA) - Recommended
-- **Bring!** integration
-- **Todoist** integration
-- Any other todo integration that supports the Home Assistant todo API
-
-Add your integration under **Settings** → **Devices & Services** → **Add Integration**
-
-## 🔒 Security Features
-
-- **XSS Protection** - All user input is sanitized before rendering
-- **Input Validation** - Proper escaping of HTML attributes and content
-- **Memory Management** - Event listeners are properly cleaned up to prevent leaks
-
-## 🎯 Recent Improvements
-
-- ✅ Fixed duplicate entries in product database
-- ✅ Added XSS protection for all user input
-- ✅ Improved keyboard navigation and accessibility
-- ✅ Enhanced error handling and user feedback
-- ✅ Optimized event listener cleanup to prevent memory leaks
-- ✅ Better search functionality with visual feedback
 
 ## 🤝 Contributing
 
